@@ -15,7 +15,6 @@ We plan to release the code once the paper is accepted for publication.
 
 ## Some Retrieval Results
 
-![image](https://github.com/user-attachments/assets/91195f96-835c-416b-8a39-c79ebb03c8d9)  
+![image](https://github.com/user-attachments/assets/a058a172-97ce-4c59-8bb8-ed6858c7d57c)
 
-![image](https://github.com/user-attachments/assets/a0579040-6cf2-43c2-b6db-99847f9571c8)
-
+![image](https://github.com/user-attachments/assets/8b020ade-426a-490a-9c8f-7c3fe0e098c1)
