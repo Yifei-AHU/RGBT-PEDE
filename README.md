@@ -6,6 +6,7 @@ RGBT-PEDE is the first publicly available dataset designed for text-based RGBT p
 ![image](https://github.com/user-attachments/assets/2f1c414b-5c75-4cb9-a28a-eed25ad2c0d2)
 
 # Methods
+![image](https://github.com/Yifei-AHU/RGBT-PEDE/blob/main/images/Fig2.png?raw=true)
 
 # Prepare Datasets
 
