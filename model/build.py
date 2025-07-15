@@ -102,8 +102,7 @@ class DCAlign(nn.Module):
         return image_feats#[:, 0, :]#.float()
 
     def encode_t_image(self, image):
-        # image_feats = self.base_model.encode_image(image) # 共享编码器
-        image_feats = self.base_model_t_vision.encode_image(image) # 不共享编码器
+        image_feats = self.base_model.encode_image(image) # 共享编码器
         return image_feats#[:, 0, :]
     
     def fuse(self, rgb, t):   # Stage I Fuse
@@ -120,18 +119,18 @@ class DCAlign(nn.Module):
         rgb_images = batch['rgb_images']
         t_images = batch['t_images'] 
 
-        caption_ids = batch['mlm_ids']  #  随机掩码原始的句子
+        caption_ids = batch['mlm_ids'] 
 
-        delete_color_random_mask_captions = batch['delete_color_random_mask'] # 在 粗粒度对齐 删除颜色文本的随机掩码 与 T 进行对齐
-        complete_random_mask_captions = batch['random_mask'] # 粗粒度对齐阶段 完整文本的随机掩码 与 RGB 进行对齐
+        delete_color_random_mask_captions = batch['delete_color_random_mask'] 
+        complete_random_mask_captions = batch['random_mask'] 
 
-        mask_nouns_caption_ids = batch['delete_color_mask_nouns']  # 这个实际上掩码的是颜色无关名词-- T  这两个用在细粒度上
-        mask_color_caption_ids = batch['mask_color']  # 这个实际上掩码的是颜色相关名词-- RGB
+        mask_nouns_caption_ids = batch['delete_color_mask_nouns'] 
+        mask_color_caption_ids = batch['mask_color'] 
  
         rgb_image_feats, t_image_features, text_feats, delete_color_rd_mask_text_feats, complete_rd_mask_text_feats, mask_nouns_text_feats, mask_color_text_feats = self.base_model(rgb_images, t_images, caption_ids, delete_color_random_mask_captions, complete_random_mask_captions, mask_nouns_caption_ids, mask_color_caption_ids)
 
-        rgb_i_feats = rgb_image_feats[:, 0, :].float() # RGB 分支的 图像和文本
-        t_i_feats = t_image_features[:, 0, :].float() # 热红外分支
+        rgb_i_feats = rgb_image_feats[:, 0, :].float()
+        t_i_feats = t_image_features[:, 0, :].float() 
         
         t_feats = text_feats[torch.arange(text_feats.shape[0]), caption_ids.argmax(dim=-1)].float()
 
@@ -139,12 +138,12 @@ class DCAlign(nn.Module):
         complete_rd_mask_t_feats = complete_rd_mask_text_feats[torch.arange(complete_rd_mask_text_feats.shape[0]), complete_random_mask_captions.argmax(dim=-1)].float()
         
         # RGB T Fuse
-        fuser_image_feats, fuser_i_feats = self.fuse(rgb_image_feats, t_image_features) # 相加
+        fuser_image_feats, fuser_i_feats = self.fuse(rgb_image_feats, t_image_features) 
  
         logit_scale = self.logit_scale
         ret.update({'temperature': 1 / logit_scale})
 
-        #### Stage I : sdm 和 下面的 mlm都要用到   （对应论文中的MGA和MLA）
+        #### Stage I : ga+la Stage II: ga
 
         if 'ga' in self.current_task:  # Global Align
             # Stage I 
@@ -163,13 +162,13 @@ class DCAlign(nn.Module):
             fuser_image_feats = fuser_image_feats.half()
 
             with torch.no_grad(): 
-                ori_x = self.base_model.encode_text(batch['ori_caption_ids']) # 编码完整文本的特征
-                ori_delete_color_x = self.base_model.encode_text(batch['ori_delete_color_caption']) # 编码完整无颜色文本的特征
+                ori_x = self.base_model.encode_text(batch['ori_caption_ids']) 
+                ori_delete_color_x = self.base_model.encode_text(batch['ori_delete_color_caption']) 
 
             mask_noun_indice = (mask_nouns_caption_ids == 49405).float()
             mask_color_indice =  (mask_color_caption_ids == 49405).float()   
 
-            recover_color = self.cross_former(mask_color_text_feats, rgb_image_feats, rgb_image_feats)  # 是否detach目前还不确定
+            recover_color = self.cross_former(mask_color_text_feats, rgb_image_feats, rgb_image_feats) 
             recover_noun = self.cross_former(mask_nouns_text_feats, t_image_features, t_image_features)  
 
             # semantic_v1
@@ -177,12 +176,12 @@ class DCAlign(nn.Module):
                 + objectives.compute_specific_location_simi_loss(ori_delete_color_x, recover_noun, mask_noun_indice)
             fuse_recover_loss = fuse_recover_loss / 2
 
-            x = self.cross_former(text_feats, fuser_image_feats, fuser_image_feats)  # 融合 _1
+            x = self.cross_former(text_feats, fuser_image_feats, fuser_image_feats)  
             x_score = self.mlm_head(x)  # [batch_size, text_len, num_colors]
 
             scores2 = x_score.float().reshape(-1, self.args.vocab_size)
             mlm_labels = batch['mlm_labels'].reshape(-1)
-            ret.update({'ar_loss': 0.1*objectives.compute_mlm(scores2, mlm_labels)})   # exact_recover_loss
+            ret.update({'ar_loss': self.args.ar_weight*objectives.compute_mlm(scores2, mlm_labels)})   # exact_recover_loss
             ret.update({'crs_cus_loss': fuse_recover_loss}) # semantic_loss
 
         return ret
