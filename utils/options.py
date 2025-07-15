@@ -15,11 +15,11 @@ def get_args():
 
     ######################## model general settings ########################
     parser.add_argument("--pretrain_choice", default='ViT-B/16') # whether use pretrained model
-    parser.add_argument("--finetune", default='logs/RGBT-PEDES/20250511_140726_baseline/best.pth')  # 20241101_210433_iira---我们的阶段I最终版本
+    parser.add_argument("--finetune", default='')  # stage I Pretrain pth
     parser.add_argument("--temperature", type=float, default=0.02, help="initial temperature value, if 0, don't use temperature")
     parser.add_argument("--img_aug", default=True, action='store_true')
 
-    ## cross modal transfomer setting  之前跑都是3
+    ## cross modal transfomer setting  
     parser.add_argument("--cmt_depth", type=int, default=3, help="cross modal transformer self attn layers")
     parser.add_argument("--masked_token_rate", type=float, default=0.8, help="masked token rate for mlm task")
     parser.add_argument("--masked_token_unchanged_rate", type=float, default=0.1, help="masked token unchanged rate")
@@ -27,7 +27,7 @@ def get_args():
     parser.add_argument("--MLM", default=True, action='store_true', help="whether to use Mask Language Modeling dataset")
 
     ######################## loss settings ########################
-    parser.add_argument("--loss_names", default='ga+la', help="which loss to use ['mlm', 'cmpm', 'id', 'itc', 'sdm', 'ls']")
+    parser.add_argument("--loss_names", default='ga+la', help="which loss to use ['ga', 'la', 'id']")
     parser.add_argument("--mlm_loss_weight", type=float, default=1.0, help="mlm loss weight")
     parser.add_argument("--id_loss_weight", type=float, default=1.0, help="id loss weight")
     
@@ -68,7 +68,7 @@ def get_args():
     parser.add_argument("--dataset_name", default="RGBT-PEDES", help="[CUHK-PEDES, RGBT-PEDES, RSTPReid]")
     parser.add_argument("--sampler", default="random", help="choose sampler from [idtentity, random]")
     parser.add_argument("--num_instance", type=int, default=4)
-    parser.add_argument("--root_dir", default="/data/dengyifei/Data/")
+    parser.add_argument("--root_dir", default="The path of RGBT-PEDES")
     parser.add_argument("--batch_size", type=int, default=64)
     parser.add_argument("--test_batch_size", type=int, default=1)
     parser.add_argument("--num_workers", type=int, default=8)
