@@ -18,10 +18,10 @@ Link: https://pan.baidu.com/s/1cbUO9vUeJa1svDMmoCvOAg
 Password: xixz
 
 # Training
-Our code borrows partially from IRRA.
+Our code borrows partially from IRRA. \<br>  
 we use single RTX4090 24G GPU for training and evaluation.
 
 # Testing
-'''
+```
 python test.py --config_file 'path/to/model_dir/configs.yaml'
-'''
+```
