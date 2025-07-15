@@ -15,7 +15,7 @@ Link: https://pan.baidu.com/s/1cbUO9vUeJa1svDMmoCvOAg
 Password: xixz
 
 ## Code
-We plan to release the code once the paper is accepted for publication.
+Our code borrows partially from IRRA.
 
 ## Some Retrieval Results
 
