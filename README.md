@@ -18,7 +18,7 @@ Link: https://pan.baidu.com/s/1cbUO9vUeJa1svDMmoCvOAg
 Password: xixz
 
 # Training
-Our code borrows partially from IRRA. \<br>  
+Our code borrows partially from IRRA. \
 we use single RTX4090 24G GPU for training and evaluation.
 
 # Testing
