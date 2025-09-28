@@ -172,6 +172,30 @@ def compute_infonce(image_features, text_features, logit_scale=0.07): # new
 
     return loss
 
+def compute_uib_loss(t_features, text_features, logit_scale=0.07):
+    """
+    单向实例绑定（UIB）损失：只优化热红外特征 T 向文本特征靠拢
+    t_features: 热红外特征 [B, D]
+    text_features: 文本特征 [B, D]（不参与梯度更新）
+    logit_scale: 温度参数
+    """
+    batch_size = t_features.shape[0]
+    labels = torch.arange(batch_size, dtype=torch.int64, device=t_features.device)
+
+    # 归一化
+    t_norm = t_features / t_features.norm(dim=-1, keepdim=True)
+    text_norm = text_features.detach()  # 单向约束：冻结文本
+    text_norm = text_norm / text_norm.norm(dim=-1, keepdim=True)
+
+    logit_scale = 1 / logit_scale
+
+    logits_per_t = logit_scale * t_norm @ text_norm.t()
+
+    # 单向 InfoNCE，只优化 T → Text
+    loss = F.cross_entropy(logits_per_t, labels)
+
+    return loss
+
 def compute_specific_location_simi_loss(ori_text_embeds, fusion_embeds, indices):
 
     # 添加归一化
