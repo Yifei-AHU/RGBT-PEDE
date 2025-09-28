@@ -147,14 +147,9 @@ class DCAlign(nn.Module):
 
         if 'ga' in self.current_task:  # Global Align
             # Stage I 
-            ret.update({'uib_loss':objectives.compute_infonce(t_i_feats, no_color_rd_mask_t_feats)})  # t_mnt_infonce_loss
-            ret.update({'sdm_loss':objectives.compute_sdm(fuser_i_feats, t_feats, batch['pids'], logit_scale)})
-            ret.update({'bia_loss':objectives.compute_infonce(rgb_i_feats, complete_rd_mask_t_feats)}) # r_mct_infonce_loss
-
-            # stage II 
-            # ret.update({'uib_loss':objectives.compute_infonce(t_i_feats, no_color_rd_mask_t_feats)}) 
-            # ret.update({'sdm_loss':self.args.sdm_weight*objectives.compute_sdm(fuser_i_feats, t_feats, batch['pids'], logit_scale)})
-            # ret.update({'bia_loss':objectives.compute_infonce(rgb_i_feats, complete_rd_mask_t_feats)})
+            ret.update({'uib_loss':self.args.uib_weights*objectives.compute_uib_loss(t_i_feats, no_color_rd_mask_t_feats)})  
+            ret.update({'sdm_loss':self.args.sdm_weights*objectives.compute_sdm(fuser_i_feats, t_feats, batch['pids'], logit_scale)})
+            ret.update({'bia_loss':self.args.bia_weights*objectives.compute_infonce(rgb_i_feats, complete_rd_mask_t_feats)}) 
 
         # Stage I
         if 'la' in self.current_task: # Local Align
@@ -171,18 +166,17 @@ class DCAlign(nn.Module):
             recover_color = self.cross_former(mask_color_text_feats, rgb_image_feats, rgb_image_feats) 
             recover_noun = self.cross_former(mask_nouns_text_feats, t_image_features, t_image_features)  
 
-            # semantic_v1
-            fuse_recover_loss = objectives.compute_specific_location_simi_loss(ori_x, recover_color, mask_color_indice) \
-                + objectives.compute_specific_location_simi_loss(ori_delete_color_x, recover_noun, mask_noun_indice)
-            fuse_recover_loss = fuse_recover_loss / 2
+            crs_loss = objectives.compute_specific_location_simi_loss(ori_x, recover_color, mask_color_indice)
+            cus_loss = objectives.compute_specific_location_simi_loss(ori_delete_color_x, recover_noun, mask_noun_indice)
 
             x = self.cross_former(text_feats, fuser_image_feats, fuser_image_feats)  
             x_score = self.mlm_head(x)  # [batch_size, text_len, num_colors]
 
             scores2 = x_score.float().reshape(-1, self.args.vocab_size)
             mlm_labels = batch['mlm_labels'].reshape(-1)
-            ret.update({'ar_loss': self.args.ar_weight*objectives.compute_mlm(scores2, mlm_labels)})   # exact_recover_loss
-            ret.update({'crs_cus_loss': fuse_recover_loss}) # semantic_loss
+            ret.update({'ar_loss': self.args.ar_weights*objectives.compute_mlm(scores2, mlm_labels)})  
+            ret.update({'crs_loss': self.args.crs_weights*crs_loss})
+            ret.update({'cus_loss': self.args.cus_weights*cus_loss})
 
         return ret
 
