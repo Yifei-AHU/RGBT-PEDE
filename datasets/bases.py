@@ -106,8 +106,8 @@ class ImageDataset(Dataset):
 
     def __getitem__(self, index):
         pid, rgb_img_path, t_img_path = self.image_pids[index], self.rgb_img_paths[index], self.t_img_paths[index]
-        rgb_img = read_image(rgb_img_path)
-        t_img = read_image(t_img_path)
+        rgb_img = read_image(rgb_img_path,gray=False)
+        t_img = read_image(t_img_path,gray=True)
         if self.transform is not None:
             rgb_img = self.transform(rgb_img)
             t_img = self.transform(t_img)
@@ -133,10 +133,6 @@ class TextDataset(Dataset):
         pid, caption = self.caption_pids[index], self.captions[index]
 
         caption = tokenize(caption, tokenizer=self.tokenizer, text_length=self.text_length, truncate=self.truncate)
-
-        # delete_color_sentence_tokens = caption.cpu().numpy()[~np.isin(caption.cpu().numpy(), self.color_words)]
-        # num_to_add = len(caption.cpu().numpy()) - len(delete_color_sentence_tokens)
-        # caption = np.concatenate((delete_color_sentence_tokens, np.zeros(num_to_add, dtype=caption.cpu().numpy().dtype)))
         
         return pid, caption
 
@@ -176,8 +172,8 @@ class ImageTextMLMDataset(Dataset):
 
     def __getitem__(self, index):
         pid, image_id, rgb_img_path, t_img_path, caption, no_color_caption = self.dataset[index]
-        rgb_img = read_image(rgb_img_path)
-        t_img = read_image(t_img_path)
+        rgb_img = read_image(rgb_img_path, gray=False)
+        t_img = read_image(t_img_path, gray=True)
         if self.transform is not None:
             if torch.rand(1).item() > 0.5:
                 rgb_img = self.flip_transform(rgb_img)
@@ -209,24 +205,24 @@ class ImageTextMLMDataset(Dataset):
         
         delete_color_caption_tokens_clone = delete_color_caption_tokens.clone()
 
-        delete_color_random_mask_tokens, _ = self._build_random_masked_tokens_and_labels(delete_color_caption_tokens.cpu().numpy(), mask_ratio) # 完整无颜色文本随机掩码 提升鲁棒性
-        delete_color_mask_noun_tokens, mnm_lables = self._build_masked_tokens_and_labels_from_list(delete_color_caption_tokens_clone, nouns_token2) # T对应的颜色无关属性掩码
+        delete_color_random_mask_tokens, _ = self._build_random_masked_tokens_and_labels(delete_color_caption_tokens.cpu().numpy(), mask_ratio) 
+        delete_color_mask_noun_tokens, mnm_lables = self._build_masked_tokens_and_labels_from_list(delete_color_caption_tokens_clone, nouns_token2) 
         
         ori_caption_tokens_1 = caption_tokens.clone()  
         ori_caption_tokens_2 = caption_tokens.clone()  
         ori_caption_tokens_3 = caption_tokens.clone()   
 
-        color_tokens = [value for value in self.color_words if value in ori_caption_tokens_1.cpu().numpy()] # 获取颜色相关的token
+        color_tokens = [value for value in self.color_words if value in ori_caption_tokens_1.cpu().numpy()] 
         num_to_mask3 = min(len(color_tokens), max(1, math.ceil(len(color_tokens) * 2 * mask_ratio)))
         if num_to_mask3 > 0:
             color_to_mask3 = random.sample(color_tokens, num_to_mask3)
         else:
             color_to_mask3 = []
             
-        random_mask_tokens, _ = self._build_random_masked_tokens_and_labels(ori_caption_tokens_1.cpu().numpy(), mask_ratio) # 完整文本 随机掩码
+        random_mask_tokens, _ = self._build_random_masked_tokens_and_labels(ori_caption_tokens_1.cpu().numpy(), mask_ratio) 
         color_mask_tokens, mcm_lables = self._build_masked_tokens_and_labels_from_list(ori_caption_tokens_3.cpu().numpy(), color_to_mask3)
 
-        mlm_tokens, mlm_labels = self._build_random_masked_tokens_and_labels(caption_tokens.cpu().numpy(), mask_ratio)  # 这是首次被随机掩码的 完整句子对应的随机掩码
+        mlm_tokens, mlm_labels = self._build_random_masked_tokens_and_labels(caption_tokens.cpu().numpy(), mask_ratio)  
      
         ret = {
             'pids': pid,
@@ -238,8 +234,8 @@ class ImageTextMLMDataset(Dataset):
             'ori_delete_color_caption': delete_color_caption_tokens_clone,
             'mlm_ids': mlm_tokens,
             'mlm_labels': mlm_labels,
-            'delete_color_random_mask': delete_color_random_mask_tokens, # T的文本的随机掩码
-            'delete_color_mask_nouns': delete_color_mask_noun_tokens,  # T 的文本的名词掩码
+            'delete_color_random_mask': delete_color_random_mask_tokens, 
+            'delete_color_mask_nouns': delete_color_mask_noun_tokens,  
             'random_mask': random_mask_tokens,
             'mask_color': color_mask_tokens,  # RGB   mask_color_sentence_tokens
             'mnm_lables': mnm_lables,
