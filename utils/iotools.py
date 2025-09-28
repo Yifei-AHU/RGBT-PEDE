@@ -14,19 +14,26 @@ from easydict import EasyDict as edict
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
-
-def read_image(img_path):
-    """Keep reading image until succeed.
-    This can avoid IOError incurred by heavy IO process."""
+def read_image(img_path, gray=False):
+    """
+    Keep reading image until succeed.
+    If infrared=True, convert pseudo-color infrared image to grayscale.
+    """
     got_img = False
     if not osp.exists(img_path):
         raise IOError("{} does not exist".format(img_path))
     while not got_img:
         try:
-            img = Image.open(img_path).convert('RGB')
+            img = Image.open(img_path)
+            if gray:
+                # 转成灰度 (单通道)
+                img = img.convert('L')  
+                img = img.convert('RGB')
+            else:
+                img = img.convert('RGB')
             got_img = True
         except IOError:
-            print("IOError incurred when reading '{}'. Will redo. Don't worry. Just chill.".format(img_path))
+            print(f"IOError incurred when reading '{img_path}'. Will redo. Don't worry. Just chill.")
             pass
     return img
 
