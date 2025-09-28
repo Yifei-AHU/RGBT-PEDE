@@ -41,8 +41,8 @@ def get_args():
 
     ######################## solver ########################
     parser.add_argument("--optimizer", type=str, default="Adam", help="[SGD, Adam, Adamw]")
-    parser.add_argument("--lr", type=float, default=1e-5) # 1e-5 # 5e-5
-    parser.add_argument("--fuse_lr", type=float, default=1e-4) # 5e-5
+    parser.add_argument("--lr", type=float, default=1e-5) 
+    parser.add_argument("--fuse_lr", type=float, default=1e-4) 
     parser.add_argument("--lr2", type=float, default=5e-5) # 5e-5
     parser.add_argument("--bias_lr_factor", type=float, default=2.)
     parser.add_argument("--momentum", type=float, default=0.9)
@@ -61,8 +61,12 @@ def get_args():
     parser.add_argument("--lrscheduler", type=str, default="cosine")
     parser.add_argument("--target_lr", type=float, default=0)
     parser.add_argument("--power", type=float, default=0.9)
-    parser.add_argument("--sdm_weight", type=float, default=0.1)
-    parser.add_argument("--ar_weight", type=float, default=0.1)
+    parser.add_argument("--sdm_weight", type=float, default=1) # Stage II 设为0.1
+    parser.add_argument("--bia_weight", type=float, default=1)
+    parser.add_argument("--uib_weight", type=float, default=1)
+    parser.add_argument("--ar_weight", type=float, default=1) # Stage II 设为0.1
+    parser.add_argument("--crs_weight", type=float, default=1)
+    parser.add_argument("--cus_weight", type=float, default1)
 
     ######################## dataset ########################
     parser.add_argument("--dataset_name", default="RGBT-PEDES", help="[CUHK-PEDES, RGBT-PEDES, RSTPReid]")
