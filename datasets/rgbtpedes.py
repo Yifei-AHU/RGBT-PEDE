@@ -33,13 +33,10 @@ class RGBTPEDES(BaseDataset):
     def __init__(self, root='', verbose=True):
         super(RGBTPEDES, self).__init__()
         self.dataset_dir = op.join(root, self.dataset_dir)
-        self.rgb_img_dir = op.join(self.dataset_dir, 'RGB/') # RGB-night-v9/
-        self.t_img_dir = op.join(self.dataset_dir, 'TGray/') # TGray
+        self.rgb_img_dir = op.join(self.dataset_dir, 'RGB/') 
+        self.t_img_dir = op.join(self.dataset_dir, 'T/') 
 
         self.anno_path = op.join(self.dataset_dir, 'caption_2_no_color.json')
-
-        # 挑战子集
-        # self.anno_path = op.join(self.dataset_dir, 'challenge_json/strong_light.json') # abnormal_illumination  low_light    test_challenge 
 
         self._check_before_run()
 
