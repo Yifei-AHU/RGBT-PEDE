@@ -147,7 +147,6 @@ class ImageTextMLMDataset(Dataset):
         self.transform = transform
         self.text_length = text_length
         self.truncate = truncate
-        # 使用 对应单词的token
         self.color_words = [736, 4287, 4481, 1901, 1746, 5496, 3360, 2866, 7048, 1449, 1579, 20501, 5598, 12054, 23650, 
                             19899, 3467, 2209, 21002, 26677, 13919, 4852, 20032, 22821] # v1
         self.tokenizer = SimpleTokenizer()
@@ -156,19 +155,6 @@ class ImageTextMLMDataset(Dataset):
 
     def __len__(self):
         return len(self.dataset)
-
-    def format_sentence(self, sentence):
-        # 在每个句号后添加空格
-        sentence = sentence.replace('.', '. ')
-        # 在每个逗号后添加空格
-        sentence = sentence.replace(',', ', ')
-        # 去掉多余的空格
-        return ' '.join(sentence.split())
-
-    def replace_colors(self, sentence):
-        # 将句子中的颜色单词替换为空字符串，并去除多余空格
-        result = re.sub(r'\b(?:' + '|'.join(self.color_words) + r')\b', '<|mask|>', sentence, flags=re.IGNORECASE)
-        return ' '.join(result.split())  # 去除多余的空格
 
     def __getitem__(self, index):
         pid, image_id, rgb_img_path, t_img_path, caption, no_color_caption = self.dataset[index]
@@ -226,7 +212,6 @@ class ImageTextMLMDataset(Dataset):
      
         ret = {
             'pids': pid,
-            # 'text_caption': caption,
             'image_ids': image_id,
             'rgb_images': rgb_img,
             't_images': t_img,
@@ -286,7 +271,7 @@ class ImageTextMLMDataset(Dataset):
 
         return torch.tensor(tokens), torch.tensor(labels)
     
-    def _build_random_masked_tokens_and_labels_v2(self, tokens, k): # 根据数量掩码不是比例
+    def _build_random_masked_tokens_and_labels_v2(self, tokens, k):
         """
         Mask exactly k random tokens for Language Model task.
         :param tokens: list of int, tokenized sentence.
@@ -295,23 +280,15 @@ class ImageTextMLMDataset(Dataset):
         """
         mask = self.tokenizer.encoder["<|mask|>"]
         token_range = list(range(1, len(self.tokenizer.encoder) - 3))  # 1 ~ 49405
-
-        # 过滤掉值为 49405 的 token，并记录可掩码的 token 索引
         candidate_indices = [i for i, token in enumerate(tokens) if 0 < token < 49405]
-
-        # 如果可掩码的 token 数量小于 k，则掩码所有可掩码的 token
         num_to_mask = min(k, len(candidate_indices))
-
-        # 随机选择 num_to_mask 个 token 进行掩码
         masked_indices = random.sample(candidate_indices, num_to_mask)
-
-        labels = [0] * len(tokens)  # 初始化 labels，默认值为 0（表示不需要预测）
+        labels = [0] * len(tokens)  
         for i in masked_indices:
             original_token = tokens[i]
             tokens[i] = mask
-            # 记录原始 token 到 labels 中
             labels[i] = original_token
-
+        
         return torch.tensor(tokens), torch.tensor(labels)
     
     def _build_masked_tokens_and_labels_from_list(self, tokens, tokens_list):
