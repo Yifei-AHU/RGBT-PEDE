@@ -25,3 +25,14 @@ we use single RTX4090 24G GPU for training and evaluation.
 ```
 python test.py --config_file 'path/to/model_dir/configs.yaml'
 ```
+
+## Cite
+```
+@inproceedings{jiang2023cross,
+  title={Cross-modal implicit relation reasoning and aligning for text-to-image person retrieval},
+  author={Jiang, Ding and Ye, Mang},
+  booktitle={Proceedings of the IEEE/CVF conference on computer vision and pattern recognition},
+  pages={2787--2797},
+  year={2023}
+}
+```
