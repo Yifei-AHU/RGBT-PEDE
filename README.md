@@ -1,4 +1,4 @@
-# Code and Dataset of paper "Decoupled Cross-Modal Alignment Network for Text-RGBT Person Retrieval and A High-Quality Benchmark"
+# Code and Dataset of paper "Decoupled Cross-Modal Alignment Network for Text-RGBT Person Retrieval and A High-Quality Benchmark" (Infomation Fusion 2026)
 
 ## Datasets
 RGBT-PEDE is the first publicly available dataset designed for text-based RGBT person retrieval. It contains 1,822 unique identities, multi-modal images (RGB and thermal), and fine-grained textual descriptions. The dataset covers a wide range of scenes across daytime and nighttime, featuring various challenges such as occlusion and illumination changes.
